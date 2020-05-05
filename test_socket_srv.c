@@ -34,6 +34,7 @@ int main(int argc, char** argv)
 
     struct sockaddr_in clt_addr;
     socklen_t cltlen = sizeof(struct sockaddr_in);
+ACCEPT_CONNECTION:
     printf("Now accepting connections...\n");
     int accept_sockfd = accept(sockfd, (struct sockaddr*)&clt_addr, &cltlen);
     if (accept_sockfd < 0)
@@ -190,7 +191,12 @@ int main(int argc, char** argv)
 			if (missed_heartbeat >= MAX_MISSING_HEARTBEAT)
 			{
 				fprintf(stderr, "Too many missing heartbeat. Stop\n");
-				break;
+				close(accept_sockfd);
+				tryout_buf_idx = 0;
+				packet_counter = 0;
+				heartbeat_counter = 0;
+				missed_heartbeat = 0;
+				goto ACCEPT_CONNECTION;
 			}
 	}
     printf("Done\n");

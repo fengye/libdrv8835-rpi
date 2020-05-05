@@ -50,3 +50,10 @@ modules.order
 Module.symvers
 Mkfile.old
 dkms.conf
+
+# Build
+drv8835_daemon
+drv8835_test_socket_clt
+drv8835_test_socket_srv
+drv8835_test_thread
+drv8835_test_threaded_server

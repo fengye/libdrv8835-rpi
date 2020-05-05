@@ -8,6 +8,10 @@
 #include <pthread.h>
 #include "common.h"
 
+// 16ms sleep ~= 60 fps
+const int WAIT_INTERVAL = 1000*16;
+const float INTERP_SEGS = 30.0f;
+
 typedef struct _motor_param
 {
     int left;

@@ -48,6 +48,40 @@ result_t drv8835_server_init()
 		return -1;
 	}
 
+	if (motor_server_start() != 0)
+	{
+		log_error("Cannot start motor server thread.");
+		return -1;
+	}
+
 	return 0;
 }
+
+result_t drv8835_server_quit()
+{
+	if (motor_server_stop() != 0)
+	{
+		return -1;
+	}
+	return 0;
+}
+
+result_t drv8835_server_set_motor_param(uint8_t motor, int16_t param)
+{
+	if (motor_server_set_speed((int)motor, (int)param) != 0)
+		return -1;
+
+	return 0;
+}
+
+result_t drv8835_server_set_motor_params(uint8_t motor1, int16_t param1, uint8_t motor2, int16_t param2)
+{
+	if (motor_server_set_speed((int)motor1, (int)param1) != 0)
+		return -1;
+	if (motor_server_set_speed((int)motor2, (int)param2) != 0)
+		return -1;
+	return 0;
+}
+
+
 

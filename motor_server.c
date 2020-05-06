@@ -23,8 +23,35 @@ static motor_param the_motor_param;
 static float tar_param[2];
 static float curr_param[2];
 static float step_speeds[2];
+static bool server_init = false;
 static bool server_running = false;
 static pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
+
+static result_t _init_gpio()
+{
+	if (!is_root())
+	{
+		log_error("To run drv8835 server, you must be root.");
+		return -1;
+	}
+
+	int init = wiringPiSetupGpio();
+    if (init != 0)
+        return init;
+
+    pinMode(PIN_MOTOR_PWM[MOTOR0], PWM_OUTPUT);
+    pinMode(PIN_MOTOR_PWM[MOTOR1], PWM_OUTPUT);
+
+    pwmSetMode(PWM_MODE_MS);
+    pwmSetRange(MAX_SPEED);
+    pwmSetClock(2);
+
+    pinMode(PIN_MOTOR_DIR[MOTOR0], OUTPUT);
+    pinMode(PIN_MOTOR_DIR[MOTOR1], OUTPUT);
+
+    log_info("GPIO initialised.");
+    return 0;
+}
 
 static void _calc_steps(int motor)
 {
@@ -76,7 +103,7 @@ static void _set_speed(int motor, int speed)
         speed = -MAX_SPEED;
 
     pthread_mutex_lock(&mutex);
-    printf("Set speed: %d - %d\n", motor, speed);
+    printf("Set target speed: %d - %d\n", motor, speed);
 
     if ((speed > 0 && curr_param[motor] < 0) ||
         (speed < 0 && curr_param[motor] > 0))
@@ -164,8 +191,14 @@ static void _on_interrupt()
 
 result_t motor_server_init()
 {
+	result_t result = 0;
     pthread_mutex_lock(&mutex);
 
+	if (_init_gpio() !=  0)
+	{
+		result = -1;
+		goto END;
+	}
     server_running = false;
     the_motor_param.left = 0;
     the_motor_param.right = 0;
@@ -174,14 +207,30 @@ result_t motor_server_init()
     curr_param[0] = 0.0f;
     curr_param[1] = 0.0f;
 
-	pthread_mutex_unlock(&mutex);
 
 	atexit(_force_stop);
 	signal(SIGINT, _on_interrupt);
 
-    _set_speed_direct(MOTOR0, 0);
-    _set_speed_direct(MOTOR1, 0);
-	return 0;
+	server_init = true;
+END:
+	pthread_mutex_unlock(&mutex);
+
+	// force initial stop state
+	if (result == 0)
+	{
+    	_set_speed_direct(MOTOR0, 0);
+    	_set_speed_direct(MOTOR1, 0);
+	}
+	return result;
+}
+
+bool motor_server_is_initialised()
+{
+	bool result;
+	pthread_mutex_lock(&mutex);
+	result = server_init;
+	pthread_mutex_unlock(&mutex);
+	return result;
 }
 
 result_t motor_server_start()

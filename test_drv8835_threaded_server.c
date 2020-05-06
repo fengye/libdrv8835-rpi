@@ -5,8 +5,6 @@
 #include "drv8835.h"
 
 int main(int argc, char *argv[]) {
-	if (drv8835_GPIO_init() != 0)
-		exit(EXIT_FAILURE);
 
 	if (drv8835_server_init() != 0)
 		exit(EXIT_FAILURE);

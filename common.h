@@ -6,7 +6,7 @@
 #include <stdbool.h>
 #include <string.h>
 
-extern const int PORT;
+extern const int DEFAULT_PORT;
 extern const uint8_t HANDSHAKE_CLIENT[2];
 extern const uint8_t HANDSHAKE_SERVER[2];
 extern const int MAX_MISSING_HEARTBEAT;

@@ -5,7 +5,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-const int PORT = 9939;
+const int DEFAULT_PORT = 9939;
 const uint8_t HANDSHAKE_CLIENT[] = {0xCA, 0xFE};
 const uint8_t HANDSHAKE_SERVER[] = {0xBE, 0xEF};
 const int MAX_MISSING_HEARTBEAT = 5;

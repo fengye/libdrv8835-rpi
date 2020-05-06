@@ -34,7 +34,7 @@ int main(int argc, char **argv)
 	memset(&srv_addr, 0, sizeof(struct sockaddr_in));
 	srv_addr.sin_family = AF_INET;
 	memcpy(&srv_addr.sin_addr.s_addr, server->h_addr, server->h_length);
-	srv_addr.sin_port = htons(PORT);
+	srv_addr.sin_port = htons(DEFAULT_PORT);
 	if (connect(sockfd, (struct sockaddr *)&srv_addr, sizeof(struct sockaddr_in)) < 0)
 	{
 		error_exit("Error connecting to server", EXIT_FAILURE);

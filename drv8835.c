@@ -5,47 +5,17 @@
 #include "types.h"
 #include "common.h"
 #include "motor_server.h"
-
-static bool gpio_init = false;
-
-result_t drv8835_GPIO_init()
-{
-	if (!is_root())
-	{
-		log_error("To run drv8835 server, you must be root.");
-		return -1;
-	}
-
-	int init = wiringPiSetupGpio();
-    if (init != 0)
-        return init;
-
-    pinMode(PIN_MOTOR_PWM[MOTOR0], PWM_OUTPUT);
-    pinMode(PIN_MOTOR_PWM[MOTOR1], PWM_OUTPUT);
-
-    pwmSetMode(PWM_MODE_MS);
-    pwmSetRange(MAX_SPEED);
-    pwmSetClock(2);
-
-    pinMode(PIN_MOTOR_DIR[MOTOR0], OUTPUT);
-    pinMode(PIN_MOTOR_DIR[MOTOR1], OUTPUT);
-
-	gpio_init = true;
-    log_info("GPIO initialised.");
-    return 0;
-}
+#include "socket_server.h"
 
 result_t drv8835_server_init()
 {
-	if (!gpio_init)
+	if (!motor_server_is_initialised())
 	{
-		log_error("GPIO must be initialised first.");
-		return -1;
-	}
-	if (motor_server_init() != 0)
-	{
-		log_error("Motor server initialisation failed.");
-		return -1;
+		if (motor_server_init() != 0)
+		{
+			log_error("Motor server initialisation failed.");
+			return -1;
+		}
 	}
 
 	if (motor_server_start() != 0)
@@ -59,12 +29,36 @@ result_t drv8835_server_init()
 
 result_t drv8835_server_quit()
 {
+	result_t result = 0;
+	if (socket_server_stop() != 0)
+	{
+		result = -1;
+	}
+
 	if (motor_server_stop() != 0)
 	{
-		return -1;
+		result = -1;
 	}
-	return 0;
+
+	return result;
 }
+
+result_t drv8835_server_wait_till_quit()
+{
+	result_t result = 0;
+	if (socket_server_wait_till_stop() != 0)
+	{
+		result = -1;
+	}
+
+	if (motor_server_stop() != 0)
+	{
+		result = -1;
+	}
+
+	return result;
+}
+
 
 result_t drv8835_server_set_motor_param(uint8_t motor, int16_t param)
 {
@@ -83,5 +77,18 @@ result_t drv8835_server_set_motor_params(uint8_t motor1, int16_t param1, uint8_t
 	return 0;
 }
 
+result_t drv8835_server_listen(int port)
+{
+	if (!socket_server_is_initialised())
+	{
+		if (socket_server_init(port) != 0)
+			return -1;
+	}
+
+	if (socket_server_start() != 0)
+		return -1;
+
+	return 0;
+}
 
 

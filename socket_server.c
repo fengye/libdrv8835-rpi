@@ -85,7 +85,7 @@ void* _heartbeat_loop(void* ptr)
 
 		// wait for handshake cond var
 		pthread_mutex_lock(&handshake_accepted_lock);
-		log_info("Wait for handshake");
+		log_info("Wait for handshake signal");
 		while(!handshake_accepted)
 		{
 			pthread_cond_wait(&handshake_accepted_cond, &handshake_accepted_lock);
@@ -359,6 +359,10 @@ void* _server_loop(void* ptr)
 				tryout_buf_idx = 0;
 				packet_counter = 0;
 
+				// reset handshake accepted 
+				pthread_mutex_lock(&handshake_accepted_lock);
+				handshake_accepted = false;
+				pthread_mutex_unlock(&handshake_accepted_lock);
 
 				// wait until heartbeat checking ended
 				log_info_nocr("Wait heartbeat checking thread to reset...");

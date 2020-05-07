@@ -160,7 +160,6 @@ static void *_server_loop(void* ptr)
 				the_motor_param.right = (int)curr_param[1];
             }
         }
-
         log_info("Left: %d, Right: %d", the_motor_param.left, the_motor_param.right);
         pthread_mutex_unlock(&mutex);
         usleep (WAIT_INTERVAL);

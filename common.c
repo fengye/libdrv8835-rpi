@@ -43,7 +43,7 @@ void log_info(const char* format, ...)
 	va_start (args, format);
 	vfprintf (info_out?info_out:stdout, format, args);
 	va_end (args);
-	fprintf(info_out?info_out:stdout, "\n");
+	fputc('\n', info_out?info_out:stdout);
 }
 
 void log_info_nocr(const char* format, ...)
@@ -60,7 +60,7 @@ void log_error(const char* format, ...)
 	va_start (args, format);
 	vfprintf (error_out?error_out:stderr, format, args);
 	va_end (args);
-	fprintf(error_out?error_out:stderr, "\n");
+	fputc('\n', error_out?error_out:stderr);
 }
 
 void log_error_nocr(const char* format, ...)

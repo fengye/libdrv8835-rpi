@@ -134,7 +134,7 @@ int main(int argc, char **argv)
 				error_exit("Error writing packet", EXIT_FAILURE);
 			}
 			free_packet(packet);
-			//usleep(1000*20);
+			usleep(1000*20);
 		}
 	}
 	close(sockfd);	

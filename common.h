@@ -40,9 +40,11 @@ extern void check_root();
 
 extern bool is_root();
 
-extern void log_info(const char* msg);
+extern void log_info(const char* msg, ...);
+extern void log_info_nocr(const char* msg, ...);
 	
-extern void log_error(const char* msg);
+extern void log_error(const char* msg, ...);
+extern void log_error_nocr(const char* msg, ...);
 
 extern void error_exit(const char *msg, int exit_code);
 

@@ -103,7 +103,7 @@ static void _set_speed(int motor, int speed)
         speed = -MAX_SPEED;
 
     pthread_mutex_lock(&mutex);
-    printf("Set target speed: %d - %d\n", motor, speed);
+    log_info("Set target speed: %d - %d", motor, speed);
 
     if ((speed > 0 && curr_param[motor] < 0) ||
         (speed < 0 && curr_param[motor] > 0))
@@ -161,16 +161,16 @@ static void *_server_loop(void* ptr)
             }
         }
 
-        printf("Left: %d, Right: %d\n", the_motor_param.left, the_motor_param.right);
+        log_info("Left: %d, Right: %d", the_motor_param.left, the_motor_param.right);
         pthread_mutex_unlock(&mutex);
         usleep (WAIT_INTERVAL);
     }
-    printf("Stopping motor 0...");
+    log_info_nocr("Stopping motor 0...");
     _set_speed_direct(MOTOR0, 0);
-    printf(" Done.\n");
-    printf("Stopping motor 1...");
+    log_info(" Done.");
+    log_info_nocr("Stopping motor 1...");
     _set_speed_direct(MOTOR1, 0);
-    printf(" Done.\n");
+    log_info(" Done.");
 
     return NULL;
 }

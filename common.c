@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stdarg.h>
 
 const int DEFAULT_PORT = 9939;
 const uint8_t HANDSHAKE_CLIENT[] = {0xCA, 0xFE};
@@ -11,6 +12,9 @@ const uint8_t HANDSHAKE_SERVER[] = {0xBE, 0xEF};
 const int MAX_MISSING_HEARTBEAT = 5;
 const uint8_t MOTOR_PARAM_PACKET_MAGIC1[] = {0xCD, 0xCD};
 const uint8_t MOTOR_PARAM_PACKET_MAGIC2[] = {0xDC, 0xDC};
+
+static FILE* info_out = NULL;
+static FILE* error_out = NULL;
 
 void check_root()
 {
@@ -27,14 +31,44 @@ bool is_root()
 	return geteuid() == 0;
 }
 
-void log_info(const char* msg)
+void log_init(FILE* info, FILE* error)
 {
-	fprintf(stdout, "%s\n", msg);
+	info_out = info;
+	error_out = error;
 }
 
-void log_error(const char* msg)
+void log_info(const char* format, ...)
 {
-	fprintf(stderr, "%s\n", msg);
+	va_list args;
+	va_start (args, format);
+	vfprintf (info_out?info_out:stdout, format, args);
+	va_end (args);
+	fprintf(info_out?info_out:stdout, "\n");
+}
+
+void log_info_nocr(const char* format, ...)
+{
+	va_list args;
+	va_start (args, format);
+	vfprintf (info_out?info_out:stdout, format, args);
+	va_end (args);
+}
+
+void log_error(const char* format, ...)
+{
+	va_list args;
+	va_start (args, format);
+	vfprintf (error_out?error_out:stderr, format, args);
+	va_end (args);
+	fprintf(error_out?error_out:stderr, "\n");
+}
+
+void log_error_nocr(const char* format, ...)
+{
+	va_list args;
+	va_start (args, format);
+	vfprintf (error_out?error_out:stderr, format, args);
+	va_end (args);
 }
 
 void error_exit(const char *msg, int exit_code)

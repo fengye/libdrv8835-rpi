@@ -265,7 +265,7 @@ void* _server_loop(void* ptr)
 				}
 				else
 				{
-					// read nothing, heartbeating
+					// read nothing, ignore 
 				}
 
 			}
@@ -340,7 +340,7 @@ void* _server_loop(void* ptr)
 				}
 				else 
 				{
-					// read nothing, heartbeat
+					// read nothing, ignore 
 				}
 				free_packet(packet);
 

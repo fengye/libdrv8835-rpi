@@ -80,7 +80,7 @@ static void _set_speed_direct(int motor, int speed)
 		newSpeed = -speed;
     }
 
-    pthread_mutex_lock(&mutex);
+    LOCK(&mutex);
 
     digitalWrite(PIN_MOTOR_DIR[motor], dir);
     pwmWrite(PIN_MOTOR_PWM[motor], newSpeed); 
@@ -89,7 +89,7 @@ static void _set_speed_direct(int motor, int speed)
     curr_param[motor] = speed;
     _calc_steps(motor);
 
-    pthread_mutex_unlock(&mutex);
+    UNLOCK(&mutex);
 }
 
 static void _set_speed(int motor, int speed)
@@ -102,7 +102,7 @@ static void _set_speed(int motor, int speed)
     if (speed < -MAX_SPEED)
         speed = -MAX_SPEED;
 
-    pthread_mutex_lock(&mutex);
+    LOCK(&mutex);
     log_info("Set target speed: %d - %d", motor, speed);
 
     if ((speed > 0 && curr_param[motor] < 0) ||
@@ -116,21 +116,21 @@ static void _set_speed(int motor, int speed)
     tar_param[motor] = speed;
     _calc_steps(motor);
 
-    pthread_mutex_unlock(&mutex);
+    UNLOCK(&mutex);
 }
 
 static void *_server_loop(void* ptr)
 {
-	pthread_mutex_lock(&mutex);
+	LOCK(&mutex);
 	server_running = true;
-	pthread_mutex_unlock(&mutex);
+	UNLOCK(&mutex);
 
     while(1)
     {
-        pthread_mutex_lock(&mutex);
+        LOCK(&mutex);
         if (!server_running)
 		{
-			pthread_mutex_unlock(&mutex);
+			UNLOCK(&mutex);
 			break;
 		}
 
@@ -161,7 +161,7 @@ static void *_server_loop(void* ptr)
             }
         }
         //log_info("Left: %d, Right: %d", the_motor_param.left, the_motor_param.right);
-        pthread_mutex_unlock(&mutex);
+        UNLOCK(&mutex);
         usleep (WAIT_INTERVAL);
     }
     log_info_nocr("Stopping motor 0...");
@@ -191,7 +191,7 @@ static void _on_interrupt()
 result_t motor_server_init()
 {
 	result_t result = 0;
-    pthread_mutex_lock(&mutex);
+    LOCK(&mutex);
 
 	if (_init_gpio() !=  0)
 	{
@@ -212,7 +212,7 @@ result_t motor_server_init()
 
 	server_init = true;
 END:
-	pthread_mutex_unlock(&mutex);
+	UNLOCK(&mutex);
 
 	// force initial stop state
 	if (result == 0)
@@ -226,22 +226,22 @@ END:
 bool motor_server_is_initialised()
 {
 	bool result;
-	pthread_mutex_lock(&mutex);
+	LOCK(&mutex);
 	result = server_init;
-	pthread_mutex_unlock(&mutex);
+	UNLOCK(&mutex);
 	return result;
 }
 
 result_t motor_server_start()
 {
 	result_t result = 0;
-	pthread_mutex_lock(&mutex);
+	LOCK(&mutex);
 	if (server_running)
 	{
 		log_error("Motor server is already running.");
 		result = -1;
 	}
-	pthread_mutex_unlock(&mutex);
+	UNLOCK(&mutex);
 	if (result < 0)
 		return result;
 
@@ -258,7 +258,7 @@ result_t motor_server_stop()
 {
 	result_t result = 0;
 
-    pthread_mutex_lock(&mutex);
+    LOCK(&mutex);
 	if (server_running)
 	{
 		log_info("Signal motor server quit");
@@ -269,7 +269,7 @@ result_t motor_server_stop()
 		log_error("Motor server is NOT running yet.");
 		result = -1;
 	}
-    pthread_mutex_unlock(&mutex);
+    UNLOCK(&mutex);
 	if (result < 0)
 		return result;
 
@@ -285,13 +285,13 @@ result_t motor_server_stop()
 result_t motor_server_set_speed(int motor, int speed)
 {
 	result_t result = 0;
-	pthread_mutex_lock(&mutex);
+	LOCK(&mutex);
 	if (!server_running)
 	{
 		log_error("Motor server is NOT running, setting speed will have no effect");
 		result = -1;
 	}
-	pthread_mutex_unlock(&mutex);
+	UNLOCK(&mutex);
 	if (result < 0)
 		return result;
 

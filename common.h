@@ -5,6 +5,10 @@
 #include <stdint.h>
 #include <stdbool.h>
 #include <string.h>
+#include <pthread.h>
+
+#define LOCK(x)		pthread_mutex_lock(x)
+#define UNLOCK(x)	pthread_mutex_unlock(x)
 
 extern const int DEFAULT_PORT;
 extern const uint8_t HANDSHAKE_CLIENT[2];

@@ -13,6 +13,7 @@ extern result_t drv8835_server_init();
 extern result_t drv8835_server_listen(int port);
 extern result_t drv8835_server_quit();
 extern result_t drv8835_server_wait_till_quit();
+extern result_t drv8835_server_force_quit();
 extern result_t drv8835_server_set_motor_param(uint8_t motor, int16_t param);
 extern result_t drv8835_server_set_motor_params(uint8_t motor1, int16_t param1, uint8_t motor2, int16_t param2);
 

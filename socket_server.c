@@ -70,6 +70,15 @@ bool socket_server_is_initialised()
 	return result;
 }
 
+bool socket_server_is_handshake_accepted()
+{
+	bool result;
+	LOCK(&handshake_accepted_lock);
+	result = handshake_accepted;
+	UNLOCK(&handshake_accepted_lock);
+	return result;
+}
+
 void* _heartbeat_loop(void* ptr)
 {
 	do
@@ -454,6 +463,8 @@ result_t socket_server_wait_till_stop()
     close(sockfd);
 	pthread_mutex_unlock(&server_init_lock);
 
+	log_info("Socket server successfully stopped.");
+
 	return result;
 }
 
@@ -486,6 +497,40 @@ result_t socket_server_stop()
     close(sockfd);
 	pthread_mutex_unlock(&server_init_lock);
 
+	log_info("Socket server successfully stopped.");
+	return result;
+}
+
+result_t socket_server_force_stop()
+{
+	result_t result = 0;
+	pthread_mutex_lock(&server_running_lock);
+	bool is_running = server_running;
+	pthread_mutex_unlock(&server_running_lock);
+	if (is_running)
+	{
+		pthread_mutex_lock(&server_running_lock);
+		server_running = false;
+		pthread_mutex_unlock(&server_running_lock);
+		if (pthread_cancel(heartbeat_thread) != 0)
+		{
+			log_error("Cannot terminate heartbeat thread.");
+			result = -1;
+		}
+		else {
+			if (pthread_cancel(server_thread) != 0)
+			{
+				log_error("Cannot terminate server thread.");
+				result = -1;
+			}
+		}
+	}
+
+	pthread_mutex_lock(&server_init_lock);
+    close(sockfd);
+	pthread_mutex_unlock(&server_init_lock);
+
+	log_info("Socket server successfully terminated.");
 	return result;
 }
 

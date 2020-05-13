@@ -282,6 +282,53 @@ result_t motor_server_stop()
 	return 0;
 }
 
+result_t motor_server_force_stop()
+{
+	result_t result = 0;
+
+    LOCK(&mutex);
+	if (server_running)
+	{
+		log_info("Signal motor server quit");
+		server_running = false;
+	}
+	else
+	{
+		log_error("Motor server is NOT running yet.");
+		result = -1;
+	}
+    UNLOCK(&mutex);
+	if (result < 0)
+		return result;
+
+    result = pthread_cancel(server_thread);
+
+	if (result < 0)
+		return result;
+	
+	log_info("Motor server successfully terminated.");
+	return 0;
+}
+
+result_t motor_server_wait_till_stop()
+{
+	result_t result = 0;
+
+    LOCK(&mutex);
+	bool is_running = server_running;
+	UNLOCK(&mutex);
+	if (is_running)
+	{
+		result = pthread_join(server_thread, NULL);
+
+		if (result < 0)
+			return result;
+		
+	}
+	log_info("Motor server successfully stopped.");
+	return 0;
+}
+
 result_t motor_server_set_speed(int motor, int speed)
 {
 	result_t result = 0;

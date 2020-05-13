@@ -30,9 +30,19 @@ result_t drv8835_server_init()
 result_t drv8835_server_quit()
 {
 	result_t result = 0;
-	if (socket_server_stop() != 0)
+	if (socket_server_is_handshake_accepted())
 	{
-		result = -1;
+		if (socket_server_stop() != 0)
+		{
+			result = -1;
+		}
+	}
+	else
+	{
+		if (socket_server_force_stop() != 0)
+		{
+			result = 1;
+		}
 	}
 
 	if (motor_server_stop() != 0)
@@ -51,7 +61,23 @@ result_t drv8835_server_wait_till_quit()
 		result = -1;
 	}
 
-	if (motor_server_stop() != 0)
+	if (motor_server_wait_till_stop() != 0)
+	{
+		result = -1;
+	}
+
+	return result;
+}
+
+result_t drv8835_server_force_quit()
+{
+	result_t result = 0;
+	if (socket_server_force_stop() != 0)
+	{
+		result = -1;
+	}
+
+	if (motor_server_force_stop() != 0)
 	{
 		result = -1;
 	}

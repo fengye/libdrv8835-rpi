@@ -188,6 +188,7 @@ void* _server_loop(void* ptr)
 		pthread_mutex_unlock(&handshake_accepted_lock);
 
 		log_info("Now accepting connections...");
+    	memset(&clt_addr, 0, cltlen);
 		int accept_sockfd = accept(sockfd, (struct sockaddr*)&clt_addr, &cltlen);
 		if (accept_sockfd < 0)
 		{

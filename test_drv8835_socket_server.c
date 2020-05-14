@@ -46,8 +46,16 @@ int main(int argc, char *argv[]) {
 			c = fgetc(stdin);
 			if (c == 'q' || c == 'Q')
 			{
-				if (drv8835_server_quit() != 0)
-					exit(EXIT_FAILURE);
+				if (drv8835_server_is_connected())
+				{
+					if (drv8835_server_quit() != 0)
+						exit(EXIT_FAILURE);
+				}
+				else
+				{
+					if (drv8835_server_force_quit() != 0)
+						exit(EXIT_FAILURE);
+				}
 
 				break;
 			}

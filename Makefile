@@ -1,6 +1,6 @@
 PROJECT=drv8835_daemon
 DAEMON_SOURCES=daemon.c
-LIB_SOURCES=drv8835.c motor_server.c socket_server.c types.c common.c
+LIB_SOURCES=drv8835.c motor_server.c socket_server.c socket_client.c types.c common.c
 TEST_THREAD_SRC=test_thread.c common.c
 TEST_SOCKET_SRV_SRC=test_socket_srv.c common.c
 TEST_SOCKET_CLT_SRC=test_socket_clt.c common.c

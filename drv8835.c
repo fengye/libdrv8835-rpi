@@ -6,6 +6,7 @@
 #include "common.h"
 #include "motor_server.h"
 #include "socket_server.h"
+#include "socket_client.h"
 
 result_t drv8835_server_init()
 {
@@ -27,22 +28,17 @@ result_t drv8835_server_init()
 	return 0;
 }
 
+bool drv8835_server_is_connected()
+{
+	return socket_server_is_handshake_accepted();
+}
+
 result_t drv8835_server_quit()
 {
 	result_t result = 0;
-	if (socket_server_is_handshake_accepted())
+	if (socket_server_stop() != 0)
 	{
-		if (socket_server_stop() != 0)
-		{
-			result = -1;
-		}
-	}
-	else
-	{
-		if (socket_server_force_stop() != 0)
-		{
-			result = 1;
-		}
+		result = -1;
 	}
 
 	if (motor_server_stop() != 0)
@@ -117,4 +113,37 @@ result_t drv8835_server_listen(int port)
 	return 0;
 }
 
+// Client interfaces
+result_t drv8835_client_connect(const char* host, int port)
+{
+	if (socket_client_connect(host, port) != 0)
+		return -1;
+
+	return 0;
+}
+
+result_t drv8835_client_disconnect()
+{
+	if (socket_client_is_connected())
+	{
+		if (socket_client_disconnect() != 0)
+			return -1;
+	}
+	return 0;
+}
+
+bool drv8835_client_is_connected()
+{
+	return socket_client_is_connected();
+}
+
+result_t drv8835_client_send_motor_param(uint8_t motor, int16_t param)
+{
+	return socket_client_send_motor_param(motor, param);
+}
+
+result_t drv8835_client_send_motor_params(uint8_t motor1, int16_t param1, uint8_t motor2, int16_t param2)
+{
+	return socket_client_send_motor_params(motor1, param1, motor2, param2);
+}
 

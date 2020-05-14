@@ -80,6 +80,10 @@ result_t socket_client_connect(const char *hostname, int port)
 	log_info("Successfully handshaked\n");
 	UNLOCK(&sock_lock);
 
+	LOCK(&client_running_lock);
+	client_running = true;
+	UNLOCK(&client_running_lock);
+
 	if (pthread_create(&heartbeat_thread, NULL, _heartbeat_loop, NULL) != 0)
 	{
 		LOCK(&client_running_lock);

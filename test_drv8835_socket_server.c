@@ -22,6 +22,7 @@ int main(int argc, char *argv[]) {
 		time = atoi(argv[2]);
 	}
 
+	log_setlevel(LOG_INFO);
 
 	if (drv8835_server_init() != 0)
 		exit(EXIT_FAILURE);

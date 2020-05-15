@@ -77,7 +77,7 @@ result_t socket_client_connect(const char *hostname, int port)
 		return -1;
 	}
 
-	log_info("Successfully handshaked\n");
+	log_info("Successfully handshaked");
 	UNLOCK(&sock_lock);
 
 	LOCK(&client_running_lock);
@@ -211,7 +211,7 @@ void	*_heartbeat_loop(void* param)
 		n = write(sockfd, heartbeat, heartbeat->len_bytes);
 		if (n > 0)
 		{
-			log_info("Sending heartbeat %d...\n", heartbeat_counter);
+			log_debug("Sending heartbeat %d...\n", heartbeat_counter);
 			heartbeat_counter++;
 		}
 		else
@@ -256,7 +256,7 @@ void	*_client_loop(void* param)
 		n = write(sockfd, packet, packet->len_bytes);
 		if (n > 0)
 		{
-			log_info("#%d packet", packet_counter);
+			log_debug("#%d packet", packet_counter);
 			packet_counter++;
 		}
 		else

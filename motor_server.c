@@ -103,7 +103,7 @@ static void _set_speed(int motor, int speed)
         speed = -MAX_SPEED;
 
     LOCK(&mutex);
-    log_info("Set target speed: %d - %d", motor, speed);
+    log_debug("Set target speed: motor%d=%d", motor, speed);
 
     if ((speed > 0 && curr_param[motor] < 0) ||
         (speed < 0 && curr_param[motor] > 0))

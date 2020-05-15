@@ -94,7 +94,7 @@ void* _heartbeat_loop(void* ptr)
 
 		// wait for handshake cond var
 		pthread_mutex_lock(&handshake_accepted_lock);
-		log_info("Wait for handshake signal");
+		log_debug("Wait for handshake signal");
 		while(!handshake_accepted)
 		{
 			pthread_cond_wait(&handshake_accepted_cond, &handshake_accepted_lock);
@@ -112,7 +112,7 @@ void* _heartbeat_loop(void* ptr)
 		pthread_mutex_unlock(&heartbeat_checking_lock);
 
 		const int check_interval = 1;
-		log_info("Now start checking heartbeat every %d sec.", check_interval);
+		log_debug("Now start checking heartbeat every %d sec.", check_interval);
 
 		int last_heartbeat_counter = 0;
 		while(1)
@@ -195,7 +195,7 @@ void* _server_loop(void* ptr)
 			log_error("Error accepting new socket");
 			return NULL;
 		}
-		log_info("Now initiating handshake... ");
+		log_debug("Now initiating handshake... ");
 
 		uint8_t buf[2];
 		memset(buf, 0, sizeof(buf));
@@ -212,8 +212,8 @@ void* _server_loop(void* ptr)
 			accept_sockfd = -1;
 			continue;
 		}
-		log_info("Received correct handshake from client");
-		log_info("Now sending handshake back to client... ");
+		log_debug("Received correct handshake from client");
+		log_debug("Now sending handshake back to client... ");
 		n = write(accept_sockfd, HANDSHAKE_SERVER, sizeof(HANDSHAKE_SERVER));
 		if (n < 0)
 		{
@@ -261,7 +261,7 @@ void* _server_loop(void* ptr)
 						// wrong heade,
 						// memmove tryout_buf one byte forward
 						memmove(tryout_buf, tryout_buf+1, sizeof(motor_param_packet_header)-1);
-						//fprintf(stderr, "Wrong header at %d\n", tryout_buf_idx);
+						//log_error("Wrong header at %d", tryout_buf_idx);
 						// reset tryout index
 						tryout_buf_idx = 0;
 						continue;
@@ -289,16 +289,16 @@ void* _server_loop(void* ptr)
 				int count = (tryout_header.len_bytes - sizeof(motor_param_packet_header) - sizeof(motor_param_packet_footer)) / sizeof(motor_param_packet_content);
 				bool is_heartbeat = count == 0;
 				if (!is_heartbeat)
-					printf("Allocate %d content\n", count);
+					log_debug("Allocate %d content", count);
 				if (tryout_header.len_bytes != sizeof(motor_param_packet_header) + count * sizeof(motor_param_packet_content) + sizeof(motor_param_packet_footer))
 				{
-					fprintf(stderr, "Inconsistent packet length (%d), give it up\n", tryout_header.len_bytes);
+					log_error("Inconsistent packet length (%d), give it up.", tryout_header.len_bytes);
 					continue;
 				}
 				packet = allocate_packet(count);
 				if (!packet)
 				{
-					fprintf(stderr, "Cannot allocate %d content, either memory is out or the number isn't right!\n", count);
+					log_error("Cannot allocate %d content, either memory is out or the number isn't right!", count);
 					continue;
 				}
 				memcpy(packet, &tryout_header, sizeof(tryout_header));
@@ -318,20 +318,20 @@ void* _server_loop(void* ptr)
 						if (is_heartbeat)
 						{
 							pthread_mutex_lock(&heartbeat_lock);
-							printf("Heartbeat #%d\n", heartbeat_counter);
+							log_debug("Heartbeat #%d", heartbeat_counter);
 							heartbeat_counter++;
 							pthread_mutex_unlock(&heartbeat_lock);
 						}
 						else
 						{
-							printf("#%d packet\n", packet_counter);
+							log_debug("#%d packet", packet_counter);
 							packet_counter++;
 							motor_param_packet_content content;
 							for(int i = 0; i < count; ++i)
 							{
 								if (extract_packet_param(packet, i, &content) == 0)
 								{
-									printf("Recv param %d (%d, %d)\n", i, content.motor, content.value);
+									log_debug("Recv param %d (%d, %d)", i, content.motor, content.value);
 									motor_server_set_speed(content.motor, content.value);
 								}
 							}
@@ -375,14 +375,14 @@ void* _server_loop(void* ptr)
 				pthread_mutex_unlock(&handshake_accepted_lock);
 
 				// wait until heartbeat checking ended
-				log_info_nocr("Wait heartbeat checking thread to reset...");
+				log_debug_nocr("Wait heartbeat checking thread to reset...");
 				pthread_mutex_lock(&heartbeat_checking_lock);
 				while(heartbeat_checking)
 				{
 					pthread_cond_wait(&heartbeat_checking_cond, &heartbeat_checking_lock);
 				}
 				pthread_mutex_unlock(&heartbeat_checking_lock);	
-				log_info(" Done.");
+				log_debug(" Done.");
 
 				break;
 			}

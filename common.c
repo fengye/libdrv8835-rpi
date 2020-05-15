@@ -236,10 +236,11 @@ void debug_packet(FILE* stream, motor_param_packet_header* header)
 	uint8_t *ptr = (uint8_t *)header;
 	size_t bytes = header->len_bytes;
 
-	fprintf(stream, "Packet(%d): \n", bytes);
+	
+	log_debug("Packet(%d): ", bytes);
 	for(size_t i = 0; i < bytes; ++i)
 	{
-		fprintf(stream, "%.2X ", ptr[i]);
+		log_debug_nocr("%.2X ", ptr[i]);
 	}
-	fprintf(stream, "\n");
+	log_debug("");
 }

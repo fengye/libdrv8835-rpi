@@ -1,5 +1,6 @@
 #include "motor_server.h"
 #include "types.h"
+#include <wiringPi.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>

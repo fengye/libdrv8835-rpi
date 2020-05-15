@@ -1,8 +1,6 @@
 #pragma once
 #include <stdbool.h>
 #include "types.h"
-#include <wiringPi.h>
-
 
 
 extern result_t motor_server_init();

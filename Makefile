@@ -1,6 +1,18 @@
 PROJECT=drv8835_daemon
+UNAME=$(shell uname -s)
+ARCH=$(shell name -m)
+IS_RASPI=0
+ifeq ($(UNAME), Linux)
+  ifeq ($(ARCH), armv7l)
+    IS_RASPI=1
+  endif
+endif
+
 DAEMON_SOURCES=daemon.c
-LIB_SOURCES=drv8835.c motor_server.c socket_server.c socket_client.c types.c common.c
+LIB_SOURCES=drv8835.c socket_client.c types.c common.c
+ifeq ($(IS_RASPI), 1)
+  LIB_SOURCES+=motor_server.c socket_server.c
+endif
 TEST_THREAD_SRC=test_thread.c common.c
 TEST_SOCKET_SRV_SRC=test_socket_srv.c common.c
 TEST_SOCKET_CLT_SRC=test_socket_clt.c common.c
@@ -11,9 +23,17 @@ DRV8835_SDL_CLIENT_SRC=test_sdl_client.c
 SOURCES=$(DAEMON_SOURCES) $(LIB_SOURCES) $(TEST_THREAD_SRC) $(TEST_SOCKET_SRV_SRC) $(TEST_SOCKET_CLT_SRC) $(TEST_DRV8835_MOTOR_SERVER_SRC) $(DRV8835_SERVER_SRC) $(TEST_DRV8835_SOCKET_CLIENT_SRC) $(DRV8835_SDL_CLIENT_SRC)
 INCPATHS=./ /usr/local/include/
 LIBPATHS=./
-LDFLAGS=-lwiringPi -lpthread
+
+LDFLAGS=-lpthread
+ifeq ($(IS_RASPI), 1)
+  LDFLAGS+=-lwiringPi
+endif
+
 SDL_LDFLAGS=-lSDL2
 CFLAGS=-c -Wall
+ifeq ($(IS_RASPI), 1)
+  CFLAGS+=-DRASPI
+endif
 CC=gcc
 AR=ar
 ARFLAGS=rcs
@@ -41,7 +61,11 @@ TEST_DRV8835_MOTOR_SERVER_BIN=drv8835_test_motor_server
 DRV8835_SERVER_BIN=drv8835_server
 TEST_DRV8835_SOCKET_CLIENT_BIN=drv8835_test_socket_client
 DRV8835_SDL_CLIENT_BIN=drv8835_sdl_client
+ifeq ($(IS_RASPI), 1)
 BINARY=$(DAEMON_BINARY) $(LIB_BIN) $(TEST_THREAD_BINARY) $(TEST_SOCKET_SRV_BIN) $(TEST_SOCKET_CLT_BIN) $(TEST_DRV8835_MOTOR_SERVER_BIN) $(DRV8835_SERVER_BIN) $(TEST_DRV8835_SOCKET_CLIENT_BIN) $(DRV8835_SDL_CLIENT_BIN)
+else
+BINARY=$(LIB_BIN) $(DRV8835_SDL_CLIENT_BIN) $(TEST_SOCKET_CLT_BIN) $(TEST_DRV8835_SOCKET_CLIENT_BIN)
+endif
 all: $(SOURCES) $(BINARY)
 
 $(DAEMON_BINARY): $(DAEMON_OBJECTS)

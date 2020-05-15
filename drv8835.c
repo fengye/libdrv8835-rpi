@@ -1,13 +1,16 @@
 #include "drv8835.h"
 #include <stdint.h>
 #include <stdbool.h>
-#include <wiringPi.h>
 #include "types.h"
 #include "common.h"
+#ifdef RASPI
+#include <wiringPi.h>
 #include "motor_server.h"
 #include "socket_server.h"
+#endif
 #include "socket_client.h"
 
+#ifdef RASPI
 result_t drv8835_server_init()
 {
 	if (!motor_server_is_initialised())
@@ -112,6 +115,7 @@ result_t drv8835_server_listen(int port)
 
 	return 0;
 }
+#endif
 
 // Client interfaces
 result_t drv8835_client_connect(const char* host, int port)

@@ -1,6 +1,6 @@
 PROJECT=drv8835_daemon
 UNAME=$(shell uname -s)
-ARCH=$(shell name -m)
+ARCH=$(shell uname -m)
 IS_RASPI=0
 ifeq ($(UNAME), Linux)
   ifeq ($(ARCH), armv7l)
@@ -24,7 +24,7 @@ SOURCES=$(DAEMON_SOURCES) $(LIB_SOURCES) $(TEST_THREAD_SRC) $(TEST_SOCKET_SRV_SR
 INCPATHS=./ /usr/local/include/
 LIBPATHS=./
 
-LDFLAGS=-lpthread
+LDFLAGS=-lpthread -pthread
 ifeq ($(IS_RASPI), 1)
   LDFLAGS+=-lwiringPi
 endif

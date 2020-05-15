@@ -20,7 +20,7 @@ const int LOG_ERROR = 5;
 static FILE* debug_out = NULL;
 static FILE* info_out = NULL;
 static FILE* error_out = NULL;
-static int log_level = LOG_DEBUG;
+static int log_level = 1;
 
 void check_root()
 {

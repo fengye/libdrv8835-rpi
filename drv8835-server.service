@@ -1,0 +1,11 @@
+[Unit]
+Description=Drv8835 Motor Control Server
+
+[Service]
+Type=simple
+User=root
+ExecStart=/home/pi/drv8835_server &
+Restart=always
+
+[Install]
+WantedBy=default.target

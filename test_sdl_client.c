@@ -23,7 +23,7 @@ int main(int argc, const char** argv)
 
 	if (SDL_Init(SDL_INIT_VIDEO) != 0)
 	{
-		log_error("SDL initialisation failed");
+		log_error("SDL initialisation failed: %s", SDL_GetError());
 		return -1;
 	}
 

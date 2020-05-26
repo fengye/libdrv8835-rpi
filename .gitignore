@@ -62,3 +62,9 @@ drv8835_test_socket_client
 drv8835_test_sdl_client
 drv8835_sdl_client
 drv8835_server
+
+
+# Python
+__pycache__
+*.pyc
+

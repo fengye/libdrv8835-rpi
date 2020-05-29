@@ -3,8 +3,16 @@
 import ctypes
 import pathlib
 
-libname = str(pathlib.Path().absolute() / "libdrv8835-shared.so")
-c_lib = ctypes.CDLL(libname)
+libname = "libdrv8835.so"
+user_lib_path = pathlib.Path('/usr/local/lib') / libname
+if not user_lib_path.exists():
+    user_lib_path = pathlib.Path('.').absolute() / libname
+    
+if user_lib_path.exists():
+    c_lib = ctypes.CDLL(user_lib_path)
+else:
+    raise FileNotFoundError
+    
 c_lib.drv8835_client_connect.argtypes=[ctypes.c_char_p, ctypes.c_int]
 c_lib.drv8835_client_send_motor_param.argtypes=[ctypes.c_ubyte, ctypes.c_short]
 c_lib.drv8835_client_send_motor_params.argtypes=[ctypes.c_ubyte, ctypes.c_short, ctypes.c_ubyte, ctypes.c_short]

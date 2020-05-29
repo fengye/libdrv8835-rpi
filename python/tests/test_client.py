@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-import drv8835_client
+from drv8835rpi import drv8835_client
 import time
 from argparse import *
 

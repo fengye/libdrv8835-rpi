@@ -9,15 +9,15 @@ ifeq ($(UNAME), Linux)
   endif
 endif
 
-PUBLIC_LIB_HEADER=drv8835.h
+PUBLIC_LIB_HEADER=drv8835.h types.h drv8835_util.h
 DAEMON_SOURCES=daemon/daemon.c
-LIB_SOURCES=drv8835.c socket_client.c types.c common.c
+LIB_SOURCES=drv8835.c drv8835_util.c socket_client.c types.c common.c
 ifeq ($(IS_RASPI), 1)
   LIB_SOURCES+=motor_server.c socket_server.c
 endif
-TEST_THREAD_SRC=$(TESTS)test_thread.c common.c
-TEST_SOCKET_SRV_SRC=$(TESTS)test_socket_srv.c common.c
-TEST_SOCKET_CLT_SRC=$(TESTS)test_socket_clt.c common.c
+TEST_THREAD_SRC=$(TESTS)test_thread.c common.c drv8835_util.c
+TEST_SOCKET_SRV_SRC=$(TESTS)test_socket_srv.c common.c drv8835_util.c types.c
+TEST_SOCKET_CLT_SRC=$(TESTS)test_socket_clt.c common.c drv8835_util.c types.c
 TEST_DRV8835_MOTOR_SERVER_SRC=$(TESTS)test_drv8835_motor_server.c
 DRV8835_SERVER_SRC=drv8835_server.c
 TEST_DRV8835_SOCKET_CLIENT_SRC=$(TESTS)test_drv8835_socket_client.c

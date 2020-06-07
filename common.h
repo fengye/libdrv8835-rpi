@@ -10,16 +10,12 @@
 #define LOCK(x)		pthread_mutex_lock(x)
 #define UNLOCK(x)	pthread_mutex_unlock(x)
 
-extern const int DEFAULT_PORT;
 extern const uint8_t HANDSHAKE_CLIENT[2];
 extern const uint8_t HANDSHAKE_SERVER[2];
 extern const int MAX_MISSING_HEARTBEAT;
 extern const uint8_t MOTOR_PARAM_PACKET_MAGIC1[2];
 extern const uint8_t MOTOR_PARAM_PACKET_MAGIC2[2];
 
-extern const int LOG_DEBUG;
-extern const int LOG_INFO;
-extern const int LOG_ERROR;
 /* header
  * content_1 
  * content_2
@@ -46,19 +42,6 @@ typedef struct __attribute__((packed)) __motor_param_packet_footer
 
 extern void check_root();
 
-extern bool is_root();
-
-extern void log_init(FILE* debug, FILE* info, FILE* error);
-extern void log_setlevel(int loglevel);
-
-extern void log_debug(const char* msg, ...);
-extern void log_debug_nocr(const char* msg, ...);
-
-extern void log_info(const char* msg, ...);
-extern void log_info_nocr(const char* msg, ...);
-	
-extern void log_error(const char* msg, ...);
-extern void log_error_nocr(const char* msg, ...);
 
 extern void error_exit(const char *msg, int exit_code);
 

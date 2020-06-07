@@ -1,5 +1,6 @@
 #include "motor_server.h"
 #include "types.h"
+#include "drv8835_util.h"
 #include <wiringPi.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -30,9 +31,9 @@ static pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
 
 static result_t _init_gpio()
 {
-	if (!is_root())
+	if (!drv8835_is_root())
 	{
-		log_error("To run drv8835 server, you must be root.");
+		drv8835_log_error("To run drv8835 server, you must be root.");
 		return -1;
 	}
 
@@ -50,7 +51,7 @@ static result_t _init_gpio()
     pinMode(PIN_MOTOR_DIR[MOTOR0], OUTPUT);
     pinMode(PIN_MOTOR_DIR[MOTOR1], OUTPUT);
 
-    log_info("GPIO initialised.");
+    drv8835_log_info("GPIO initialised.");
     return 0;
 }
 
@@ -104,7 +105,7 @@ static void _set_speed(int motor, int speed)
         speed = -MAX_SPEED;
 
     LOCK(&mutex);
-    log_debug("Set target speed: motor%d=%d", motor, speed);
+    drv8835_log_debug("Set target speed: motor%d=%d", motor, speed);
 
     if ((speed > 0 && curr_param[motor] < 0) ||
         (speed < 0 && curr_param[motor] > 0))
@@ -161,16 +162,16 @@ static void *_server_loop(void* ptr)
 				the_motor_param.right = (int)curr_param[1];
             }
         }
-        //log_info("Left: %d, Right: %d", the_motor_param.left, the_motor_param.right);
+        //drv8835_log_info("Left: %d, Right: %d", the_motor_param.left, the_motor_param.right);
         UNLOCK(&mutex);
         usleep (WAIT_INTERVAL);
     }
-    log_info_nocr("Stopping motor 0...");
+    drv8835_log_info_nocr("Stopping motor 0...");
     _set_speed_direct(MOTOR0, 0);
-    log_info(" Done.");
-    log_info_nocr("Stopping motor 1...");
+    drv8835_log_info(" Done.");
+    drv8835_log_info_nocr("Stopping motor 1...");
     _set_speed_direct(MOTOR1, 0);
-    log_info(" Done.");
+    drv8835_log_info(" Done.");
 
     return NULL;
 }
@@ -239,7 +240,7 @@ result_t motor_server_start()
 	LOCK(&mutex);
 	if (server_running)
 	{
-		log_error("Motor server is already running.");
+		drv8835_log_error("Motor server is already running.");
 		result = -1;
 	}
 	UNLOCK(&mutex);
@@ -248,7 +249,7 @@ result_t motor_server_start()
 
     if (pthread_create(&server_thread, NULL, _server_loop, &the_motor_param) != 0)
     {
-		log_error("Create server thread failed, exiting...");
+		drv8835_log_error("Create server thread failed, exiting...");
 		return -1;
     }
 
@@ -262,12 +263,12 @@ result_t motor_server_stop()
     LOCK(&mutex);
 	if (server_running)
 	{
-		log_info("Signal motor server quit");
+		drv8835_log_info("Signal motor server quit");
 		server_running = false;
 	}
 	else
 	{
-		log_error("Motor server is NOT running yet.");
+		drv8835_log_error("Motor server is NOT running yet.");
 		result = -1;
 	}
     UNLOCK(&mutex);
@@ -279,7 +280,7 @@ result_t motor_server_stop()
 	if (result < 0)
 		return result;
 	
-	log_info("Motor server successfully stopped.");
+	drv8835_log_info("Motor server successfully stopped.");
 	return 0;
 }
 
@@ -290,12 +291,12 @@ result_t motor_server_force_stop()
     LOCK(&mutex);
 	if (server_running)
 	{
-		log_info("Signal motor server quit");
+		drv8835_log_info("Signal motor server quit");
 		server_running = false;
 	}
 	else
 	{
-		log_error("Motor server is NOT running yet.");
+		drv8835_log_error("Motor server is NOT running yet.");
 		result = -1;
 	}
     UNLOCK(&mutex);
@@ -307,7 +308,7 @@ result_t motor_server_force_stop()
 	if (result < 0)
 		return result;
 	
-	log_info("Motor server successfully terminated.");
+	drv8835_log_info("Motor server successfully terminated.");
 	return 0;
 }
 
@@ -326,7 +327,7 @@ result_t motor_server_wait_till_stop()
 			return result;
 		
 	}
-	log_info("Motor server successfully stopped.");
+	drv8835_log_info("Motor server successfully stopped.");
 	return 0;
 }
 
@@ -336,7 +337,7 @@ result_t motor_server_set_speed(int motor, int speed)
 	LOCK(&mutex);
 	if (!server_running)
 	{
-		log_error("Motor server is NOT running, setting speed will have no effect");
+		drv8835_log_error("Motor server is NOT running, setting speed will have no effect");
 		result = -1;
 	}
 	UNLOCK(&mutex);

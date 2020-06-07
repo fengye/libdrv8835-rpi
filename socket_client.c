@@ -10,6 +10,8 @@
 #include <netdb.h>
 #include <pthread.h>
 #include "socket_client.h"
+#include "types.h"
+#include "drv8835_util.h"
 #include "common.h"
 
 static int sockfd;
@@ -36,14 +38,14 @@ result_t socket_client_connect(const char *hostname, int port)
 	sockfd = socket(AF_INET, SOCK_STREAM, 0);
 	if (sockfd < 0)
 	{
-		log_error("Cannot create socket.");
+		drv8835_log_error("Cannot create socket.");
 		return -1;
 	}
 
 	server = gethostbyname(hostname);
 	if (!server)
 	{
-		log_error("Error resolving host: %s", hostname);
+		drv8835_log_error("Error resolving host: %s", hostname);
 		return -1;
 	}
 	memset(&srv_addr, 0, sizeof(struct sockaddr_in));
@@ -52,14 +54,14 @@ result_t socket_client_connect(const char *hostname, int port)
 	srv_addr.sin_port = htons(port);
 	if (connect(sockfd, (struct sockaddr *)&srv_addr, sizeof(struct sockaddr_in)) < 0)
 	{
-		log_error("Error connecting to server.");
+		drv8835_log_error("Error connecting to server.");
 		return -1;
 	}
 
 	int n = write(sockfd, HANDSHAKE_CLIENT, sizeof(HANDSHAKE_CLIENT));
 	if (n < 0)
 	{
-		log_error("Error writing handshake to socket");
+		drv8835_log_error("Error writing handshake to socket");
 		return -1;
 	}
 
@@ -68,16 +70,16 @@ result_t socket_client_connect(const char *hostname, int port)
 	n = read(sockfd, reply_buf, sizeof(reply_buf));
 	if (n < 0)
 	{
-		log_error("Error reading handshake from socket");
+		drv8835_log_error("Error reading handshake from socket");
 		return -1;
 	}
 	if (memcmp(reply_buf, HANDSHAKE_SERVER, sizeof(HANDSHAKE_SERVER)) != 0)
 	{
-		log_error("Handshake failed");
+		drv8835_log_error("Handshake failed");
 		return -1;
 	}
 
-	log_info("Successfully handshaked");
+	drv8835_log_info("Successfully handshaked");
 	UNLOCK(&sock_lock);
 
 	LOCK(&client_running_lock);
@@ -89,7 +91,7 @@ result_t socket_client_connect(const char *hostname, int port)
 		LOCK(&client_running_lock);
 		client_running = false;
 		UNLOCK(&client_running_lock);
-		log_error("Cannot create heartbeat thread.");
+		drv8835_log_error("Cannot create heartbeat thread.");
 		return -1;
 	}
 	else {
@@ -98,7 +100,7 @@ result_t socket_client_connect(const char *hostname, int port)
 			LOCK(&client_running_lock);
 			client_running = false;
 			UNLOCK(&client_running_lock);
-			log_error("Cannot create client thread.");
+			drv8835_log_error("Cannot create client thread.");
 			return -1;
 		}
 	}
@@ -130,23 +132,23 @@ result_t socket_client_disconnect()
 			if (pthread_join(heartbeat_thread, NULL) == 0)
 			{
 				close(sockfd);
-				log_info("Successfully disconnected.");
+				drv8835_log_info("Successfully disconnected.");
 			}
 			else
 			{
-				log_error("Error joining heartbeat thread.");
+				drv8835_log_error("Error joining heartbeat thread.");
 				return -1;
 			}
 		}
 		else
 		{
-			log_error("Error joining client thread.");
+			drv8835_log_error("Error joining client thread.");
 			return -1;
 		}
 	}
 	else
 	{
-		log_info("Client not connected. Ignore.");
+		drv8835_log_info("Client not connected. Ignore.");
 	}
 	return 0;
 }
@@ -164,7 +166,7 @@ result_t socket_client_send_motor_param(uint8_t motor, int16_t param)
 {
 	if (motor > 1 || param > MAX_SPEED || param < -MAX_SPEED)
 	{
-		log_error("Incorrect motor parameter.");
+		drv8835_log_error("Incorrect motor parameter.");
 		return -1;
 	}
 
@@ -181,7 +183,7 @@ result_t socket_client_send_motor_params(uint8_t motor0, int16_t param0, uint8_t
 	if (motor0 > 1 || param0 > MAX_SPEED || param0 < -MAX_SPEED ||
 		motor1 > 1 || param1 > MAX_SPEED || param1 < -MAX_SPEED )
 	{
-		log_error("Incorrect motor parameter.");
+		drv8835_log_error("Incorrect motor parameter.");
 		return -1;
 	}
 	LOCK(&send_lock);
@@ -211,13 +213,13 @@ void	*_heartbeat_loop(void* param)
 		n = write(sockfd, heartbeat, heartbeat->len_bytes);
 		if (n > 0)
 		{
-			log_debug("Sending heartbeat %d...\n", heartbeat_counter);
+			drv8835_log_debug("Sending heartbeat %d...\n", heartbeat_counter);
 			heartbeat_counter++;
 		}
 		else
 		if ( n < 0 )
 		{
-			log_error("Error writing heartbeat");
+			drv8835_log_error("Error writing heartbeat");
 		}
 		free_packet(heartbeat);
 
@@ -249,20 +251,20 @@ void	*_client_loop(void* param)
 		motor_param_packet_header* packet = allocate_packet(2);
 
 		if (set_packet_param(packet, 0, MOTOR0, motor_params[MOTOR0]) < 0)
-			log_error("Error setting packet param 0");
+			drv8835_log_error("Error setting packet param 0");
 		if (set_packet_param(packet, 1, MOTOR1, motor_params[MOTOR1]) < 0)
-			log_error("Error setting packet param 1");
+			drv8835_log_error("Error setting packet param 1");
 
 		n = write(sockfd, packet, packet->len_bytes);
 		if (n > 0)
 		{
-			log_debug("#%d packet", packet_counter);
+			drv8835_log_debug("#%d packet", packet_counter);
 			packet_counter++;
 		}
 		else
 		if ( n < 0 )
 		{
-			log_error("Error writing packet");
+			drv8835_log_error("Error writing packet");
 		}
 		free_packet(packet);
 		// reset sending_param

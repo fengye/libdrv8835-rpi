@@ -75,7 +75,7 @@ static void set_speed_direct(int motor, int speed)
     if (speed < 0)
     {
         dir = 1;
-	newSpeed = -speed;
+		newSpeed = -speed;
     }
 
     pthread_mutex_lock(&mutex);
@@ -132,35 +132,35 @@ static void *server_loop(void* ptr)
     {
         pthread_mutex_lock(&mutex);
         if (!server_running)
-	{
-	    pthread_mutex_unlock(&mutex);
-            break;
-	}
+		{
+			pthread_mutex_unlock(&mutex);
+				break;
+		}
 
-	for(int i = 0; i < 2; ++i)
+		for(int i = 0; i < 2; ++i)
         {
             if (tar_param[i] != curr_param[i])
             {
-                 if (fabs(tar_param[i] - curr_param[i]) <= fabs(step_speeds[i]))
-                 {
-                     curr_param[i] = tar_param[i];
-                 }
-                 else
-                 {
-                     curr_param[i] += step_speeds[i];
-                 }
-                 int dir = 0;
-		 int speed = curr_param[i];
-                 if (curr_param[i] < 0)
-		 {
-                     dir = 1;
-		     speed = -curr_param[i];
-		 }
-                 digitalWrite(PIN_MOTOR_DIR[i], dir);
-                 pwmWrite(PIN_MOTOR_PWM[i], speed); 
+				if (fabs(tar_param[i] - curr_param[i]) <= fabs(step_speeds[i]))
+				{
+					curr_param[i] = tar_param[i];
+				}
+				else
+				{
+					curr_param[i] += step_speeds[i];
+				}
+				int dir = 0;
+				int speed = curr_param[i];
+                if (curr_param[i] < 0)
+				{
+					dir = 1;
+					speed = -curr_param[i];
+				}
+                digitalWrite(PIN_MOTOR_DIR[i], dir);
+                pwmWrite(PIN_MOTOR_PWM[i], speed); 
 
-		 the_motor_param.left = (int)curr_param[0];
-		 the_motor_param.right = (int)curr_param[1];
+				the_motor_param.left = (int)curr_param[0];
+				the_motor_param.right = (int)curr_param[1];
             }
         }
 
@@ -215,8 +215,8 @@ int main(int argc, char *argv[]) {
 
     if (pthread_create(&server_thread, NULL, server_loop, &the_motor_param) != 0)
     {
-	fprintf(stderr, "Create server thread failed, exiting...\n");
-	exit(EXIT_FAILURE);
+		fprintf(stderr, "Create server thread failed, exiting...\n");
+		exit(EXIT_FAILURE);
     }
     printf("Set to 50, 80\n");
     set_speed(MOTOR0, 50);

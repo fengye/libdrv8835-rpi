@@ -2,9 +2,11 @@
 #include <stdlib.h>
 #include <stdbool.h>
 #include <unistd.h>
+#include <signal.h>
 #include <string.h>
 #include "drv8835.h"
-#include "common.h"
+#include "types.h"
+#include "drv8835_util.h"
 
 static void _on_interrupt()
 {
@@ -30,7 +32,7 @@ int main(int argc, char *argv[]) {
 
 	if (time >= 0)
 	{
-		log_info("Client will run for %d seconds", time);
+		drv8835_log_info("Client will run for %d seconds", time);
 		sleep(time);
 		if (drv8835_client_disconnect() != 0)
 			exit(EXIT_FAILURE);
@@ -47,6 +49,6 @@ int main(int argc, char *argv[]) {
 		} while(1);
 	}
 
-	log_info("Exit test.");
+	drv8835_log_info("Exit test.");
 	exit(0);
 }

@@ -1,5 +1,7 @@
 #include "types.h"
 
+const int DEFAULT_PORT = 9939;
+
 const int MOTOR0 = 0;
 const int MOTOR1 = 1;
 const int MAX_SPEED = 480;

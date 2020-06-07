@@ -10,6 +10,8 @@
 #include <pthread.h>
 #include "socket_server.h"
 #include "motor_server.h"
+#include "types.h"
+#include "drv8835_util.h"
 #include "common.h"
 
 static bool server_initialised = false;
@@ -88,13 +90,13 @@ void* _heartbeat_loop(void* ptr)
 		pthread_mutex_unlock(&server_running_lock);
 		if (!is_server_running)
 		{
-			log_info("Signaled exit. Quit heartbeat loop.");
+			drv8835_log_info("Signaled exit. Quit heartbeat loop.");
 			break;
 		}
 
 		// wait for handshake cond var
 		pthread_mutex_lock(&handshake_accepted_lock);
-		log_debug("Wait for handshake signal");
+		drv8835_log_debug("Wait for handshake signal");
 		while(!handshake_accepted)
 		{
 			pthread_cond_wait(&handshake_accepted_cond, &handshake_accepted_lock);
@@ -112,7 +114,7 @@ void* _heartbeat_loop(void* ptr)
 		pthread_mutex_unlock(&heartbeat_checking_lock);
 
 		const int check_interval = 1;
-		log_debug("Now start checking heartbeat every %d sec.", check_interval);
+		drv8835_log_debug("Now start checking heartbeat every %d sec.", check_interval);
 
 		int last_heartbeat_counter = 0;
 		while(1)
@@ -122,7 +124,7 @@ void* _heartbeat_loop(void* ptr)
 			pthread_mutex_unlock(&server_running_lock);
 			if (!is_server_running)
 			{
-				log_info("Heartbeat loop detected exit signal.");
+				drv8835_log_info("Heartbeat loop detected exit signal.");
 				break;
 			}
 			sleep(check_interval);
@@ -146,7 +148,7 @@ void* _heartbeat_loop(void* ptr)
 
 			if (curr_missed_heartbeat >= MAX_MISSING_HEARTBEAT)
 			{
-				log_error("Reached max(%d) heartbeat miss.", MAX_MISSING_HEARTBEAT);
+				drv8835_log_error("Reached max(%d) heartbeat miss.", MAX_MISSING_HEARTBEAT);
 				break;
 			}
 		}
@@ -166,7 +168,7 @@ void* _server_loop(void* ptr)
 {
     if (listen(sockfd, 5) < 0)
     {
-		log_error("Error on listening");
+		drv8835_log_error("Error on listening");
 		return NULL;
     }
 
@@ -179,7 +181,7 @@ void* _server_loop(void* ptr)
 		pthread_mutex_unlock(&server_running_lock);
 		if (!is_server_running)
 		{
-			log_info("Signaled exit. Quit socket server loop.");
+			drv8835_log_info("Signaled exit. Quit socket server loop.");
 			break;
 		}
 		// reset handshake accepted 
@@ -187,43 +189,43 @@ void* _server_loop(void* ptr)
 		handshake_accepted = false;
 		pthread_mutex_unlock(&handshake_accepted_lock);
 
-		log_info("Now accepting connections...");
+		drv8835_log_info("Now accepting connections...");
     	memset(&clt_addr, 0, cltlen);
 		int accept_sockfd = accept(sockfd, (struct sockaddr*)&clt_addr, &cltlen);
 		if (accept_sockfd < 0)
 		{
-			log_error("Error accepting new socket");
+			drv8835_log_error("Error accepting new socket");
 			return NULL;
 		}
-		log_debug("Now initiating handshake... ");
+		drv8835_log_debug("Now initiating handshake... ");
 
 		uint8_t buf[2];
 		memset(buf, 0, sizeof(buf));
 		int n = read(accept_sockfd, buf, sizeof(buf));
 		if (n < 0)
 		{
-			log_error("Error reading handshake from socket");
+			drv8835_log_error("Error reading handshake from socket");
 			return NULL;
 		}
 		if (memcmp(buf, HANDSHAKE_CLIENT, sizeof(HANDSHAKE_CLIENT)) != 0)
 		{
-			log_error("Handshake failed");
+			drv8835_log_error("Handshake failed");
 			close(accept_sockfd);
 			accept_sockfd = -1;
 			continue;
 		}
-		log_debug("Received correct handshake from client");
-		log_debug("Now sending handshake back to client... ");
+		drv8835_log_debug("Received correct handshake from client");
+		drv8835_log_debug("Now sending handshake back to client... ");
 		n = write(accept_sockfd, HANDSHAKE_SERVER, sizeof(HANDSHAKE_SERVER));
 		if (n < 0)
 		{
-			log_error("Error writing handshake to socket");
+			drv8835_log_error("Error writing handshake to socket");
 			close(accept_sockfd);
 			accept_sockfd = -1;
 			continue;
 		}
 
-		log_info("Handshake done.");
+		drv8835_log_info("Handshake done.");
 
 		// signal to allow heartbeat check thread to continue
 		pthread_mutex_lock(&handshake_accepted_lock);
@@ -242,7 +244,7 @@ void* _server_loop(void* ptr)
 			pthread_mutex_unlock(&server_running_lock);
 			if (!is_server_running)
 			{
-				log_info("Socket server loop detected exit signal.");
+				drv8835_log_info("Socket server loop detected exit signal.");
 				break;
 			}
 
@@ -261,7 +263,7 @@ void* _server_loop(void* ptr)
 						// wrong heade,
 						// memmove tryout_buf one byte forward
 						memmove(tryout_buf, tryout_buf+1, sizeof(motor_param_packet_header)-1);
-						//log_error("Wrong header at %d", tryout_buf_idx);
+						//drv8835_log_error("Wrong header at %d", tryout_buf_idx);
 						// reset tryout index
 						tryout_buf_idx = 0;
 						continue;
@@ -270,7 +272,7 @@ void* _server_loop(void* ptr)
 				else
 				if (n < 0)
 				{
-					log_error("Error reading packet");
+					drv8835_log_error("Error reading packet");
 					return NULL;
 				}
 				else
@@ -289,16 +291,16 @@ void* _server_loop(void* ptr)
 				int count = (tryout_header.len_bytes - sizeof(motor_param_packet_header) - sizeof(motor_param_packet_footer)) / sizeof(motor_param_packet_content);
 				bool is_heartbeat = count == 0;
 				if (!is_heartbeat)
-					log_debug("Allocate %d content", count);
+					drv8835_log_debug("Allocate %d content", count);
 				if (tryout_header.len_bytes != sizeof(motor_param_packet_header) + count * sizeof(motor_param_packet_content) + sizeof(motor_param_packet_footer))
 				{
-					log_error("Inconsistent packet length (%d), give it up.", tryout_header.len_bytes);
+					drv8835_log_error("Inconsistent packet length (%d), give it up.", tryout_header.len_bytes);
 					continue;
 				}
 				packet = allocate_packet(count);
 				if (!packet)
 				{
-					log_error("Cannot allocate %d content, either memory is out or the number isn't right!", count);
+					drv8835_log_error("Cannot allocate %d content, either memory is out or the number isn't right!", count);
 					continue;
 				}
 				memcpy(packet, &tryout_header, sizeof(tryout_header));
@@ -318,20 +320,20 @@ void* _server_loop(void* ptr)
 						if (is_heartbeat)
 						{
 							pthread_mutex_lock(&heartbeat_lock);
-							log_debug("Heartbeat #%d", heartbeat_counter);
+							drv8835_log_debug("Heartbeat #%d", heartbeat_counter);
 							heartbeat_counter++;
 							pthread_mutex_unlock(&heartbeat_lock);
 						}
 						else
 						{
-							log_debug("#%d packet", packet_counter);
+							drv8835_log_debug("#%d packet", packet_counter);
 							packet_counter++;
 							motor_param_packet_content content;
 							for(int i = 0; i < count; ++i)
 							{
 								if (extract_packet_param(packet, i, &content) == 0)
 								{
-									log_debug("Recv param %d (%d, %d)", i, content.motor, content.value);
+									drv8835_log_debug("Recv param %d (%d, %d)", i, content.motor, content.value);
 									motor_server_set_speed(content.motor, content.value);
 								}
 							}
@@ -339,13 +341,13 @@ void* _server_loop(void* ptr)
 					}
 					else
 					{
-						log_error("Wrong packet content");
+						drv8835_log_error("Wrong packet content");
 					}
 				}
 				else
 				if (n < 0)
 				{
-					log_error("Error reading packet");
+					drv8835_log_error("Error reading packet");
 					return NULL;
 				}
 				else 
@@ -363,7 +365,7 @@ void* _server_loop(void* ptr)
 			pthread_mutex_unlock(&heartbeat_lock);
 			if (curr_missed_heartbeat >= MAX_MISSING_HEARTBEAT)
 			{
-				log_error("Too many missing heartbeat. Stop.");
+				drv8835_log_error("Too many missing heartbeat. Stop.");
 				close(accept_sockfd);
 				accept_sockfd = -1;
 				tryout_buf_idx = 0;
@@ -375,14 +377,14 @@ void* _server_loop(void* ptr)
 				pthread_mutex_unlock(&handshake_accepted_lock);
 
 				// wait until heartbeat checking ended
-				log_debug_nocr("Wait heartbeat checking thread to reset...");
+				drv8835_log_debug_nocr("Wait heartbeat checking thread to reset...");
 				pthread_mutex_lock(&heartbeat_checking_lock);
 				while(heartbeat_checking)
 				{
 					pthread_cond_wait(&heartbeat_checking_cond, &heartbeat_checking_lock);
 				}
 				pthread_mutex_unlock(&heartbeat_checking_lock);	
-				log_debug(" Done.");
+				drv8835_log_debug(" Done.");
 
 				break;
 			}
@@ -398,7 +400,7 @@ void* _server_loop(void* ptr)
 		usleep(1000); // a little breath
 	} while(1);
 
-    log_info("Finished server loop.");
+    drv8835_log_info("Finished server loop.");
 
 	return NULL;
 }
@@ -448,13 +450,13 @@ result_t socket_server_wait_till_stop()
 	{
 		if (pthread_join(heartbeat_thread, NULL) != 0)
 		{
-			log_error("Cannot join heartbeat thread.");
+			drv8835_log_error("Cannot join heartbeat thread.");
 			result = -1;
 		}
 		else {
 			if (pthread_join(server_thread, NULL) != 0)
 			{
-				log_error("Cannot join server thread.");
+				drv8835_log_error("Cannot join server thread.");
 				result = -1;
 			}
 		}
@@ -464,7 +466,7 @@ result_t socket_server_wait_till_stop()
     close(sockfd);
 	pthread_mutex_unlock(&server_init_lock);
 
-	log_info("Socket server successfully stopped.");
+	drv8835_log_info("Socket server successfully stopped.");
 
 	return result;
 }
@@ -482,13 +484,13 @@ result_t socket_server_stop()
 		pthread_mutex_unlock(&server_running_lock);
 		if (pthread_join(heartbeat_thread, NULL) != 0)
 		{
-			log_error("Cannot join heartbeat thread.");
+			drv8835_log_error("Cannot join heartbeat thread.");
 			result = -1;
 		}
 		else {
 			if (pthread_join(server_thread, NULL) != 0)
 			{
-				log_error("Cannot join server thread.");
+				drv8835_log_error("Cannot join server thread.");
 				result = -1;
 			}
 		}
@@ -498,7 +500,7 @@ result_t socket_server_stop()
     close(sockfd);
 	pthread_mutex_unlock(&server_init_lock);
 
-	log_info("Socket server successfully stopped.");
+	drv8835_log_info("Socket server successfully stopped.");
 	return result;
 }
 
@@ -515,13 +517,13 @@ result_t socket_server_force_stop()
 		pthread_mutex_unlock(&server_running_lock);
 		if (pthread_cancel(heartbeat_thread) != 0)
 		{
-			log_error("Cannot terminate heartbeat thread.");
+			drv8835_log_error("Cannot terminate heartbeat thread.");
 			result = -1;
 		}
 		else {
 			if (pthread_cancel(server_thread) != 0)
 			{
-				log_error("Cannot terminate server thread.");
+				drv8835_log_error("Cannot terminate server thread.");
 				result = -1;
 			}
 		}
@@ -531,7 +533,7 @@ result_t socket_server_force_stop()
     close(sockfd);
 	pthread_mutex_unlock(&server_init_lock);
 
-	log_info("Socket server successfully terminated.");
+	drv8835_log_info("Socket server successfully terminated.");
 	return result;
 }
 

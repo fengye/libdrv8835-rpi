@@ -1,5 +1,5 @@
 #include "drv8835.h"
-#include "common.h"
+#include "drv8835_util.h"
 #include <stdbool.h>
 #include <stdint.h>
 #include <SDL2/SDL.h>
@@ -13,23 +13,23 @@ int main(int argc, const char** argv)
 		hostname = argv[2];
 	}
 
-	log_setlevel(LOG_INFO);
+	drv8835_log_setlevel(LOG_INFO);
 
 	if (drv8835_client_connect(hostname, DEFAULT_PORT) < 0)
 	{
-		log_error("Cannot connect to %s", hostname);
+		drv8835_log_error("Cannot connect to %s", hostname);
 		return -1;
 	}
 
 	if (SDL_Init(SDL_INIT_VIDEO) != 0)
 	{
-		log_error("SDL initialisation failed: %s", SDL_GetError());
+		drv8835_log_error("SDL initialisation failed: %s", SDL_GetError());
 		return -1;
 	}
 
 	if (SDL_InitSubSystem(SDL_INIT_EVENTS) != 0)
 	{
-		log_error("SDL event subsystem initialisation failed.");
+		drv8835_log_error("SDL event subsystem initialisation failed.");
 	}
 	else
 	{
@@ -41,14 +41,14 @@ int main(int argc, const char** argv)
 			320, 240, SDL_WINDOW_OPENGL);	
 		if (!window)
 		{
-			log_error("Cannot create SDL window");
+			drv8835_log_error("Cannot create SDL window");
 			goto DESTROY_WINDOW;
 		}
 
 		renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
 		if (!renderer)
 		{
-			log_error("Cannot create SDL renderer");
+			drv8835_log_error("Cannot create SDL renderer");
 			goto DESTROY_RENDERER;
 		}
 		
@@ -91,7 +91,7 @@ int main(int argc, const char** argv)
 							}
 							if (valid_key)
 							{
-								log_debug("Key down(%d): 0x%02X", event.key.repeat, event.key.keysym.scancode );
+								drv8835_log_debug("Key down(%d): 0x%02X", event.key.repeat, event.key.keysym.scancode );
 								drv8835_client_send_motor_params(MOTOR0, up_state[0] + down_state[0], MOTOR1, up_state[1] + down_state[1]);
 							}
 						}
@@ -122,7 +122,7 @@ int main(int argc, const char** argv)
 							}
 							if (valid_key)
 							{
-								log_debug("Key up(%d): 0x%02X", event.key.repeat, event.key.keysym.scancode );
+								drv8835_log_debug("Key up(%d): 0x%02X", event.key.repeat, event.key.keysym.scancode );
 								drv8835_client_send_motor_params(MOTOR0, up_state[0] + down_state[0], MOTOR1, up_state[1] + down_state[1]);
 							}
 						}

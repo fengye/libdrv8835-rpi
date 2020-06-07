@@ -4,6 +4,7 @@
 #include <unistd.h>
 #include <string.h>
 #include "drv8835.h"
+#include "drv8835_util.h"
 #include "common.h"
 
 static void _on_interrupt()
@@ -22,7 +23,7 @@ int main(int argc, char *argv[]) {
 		time = atoi(argv[2]);
 	}
 
-	log_setlevel(LOG_INFO);
+	drv8835_log_setlevel(LOG_INFO);
 
 	if (drv8835_server_init() != 0)
 		exit(EXIT_FAILURE);
@@ -34,7 +35,7 @@ int main(int argc, char *argv[]) {
 
 	if (time >= 0)
 	{
-		log_info("Server will run for %d seconds", time);
+		drv8835_log_info("Server will run for %d seconds", time);
 		sleep(time);
 		if (drv8835_server_quit() != 0)
 			exit(EXIT_FAILURE);
@@ -66,6 +67,6 @@ int main(int argc, char *argv[]) {
 	if (drv8835_server_wait_till_quit() != 0) 
 		exit(EXIT_FAILURE);
 
-	log_info("Exit test.");
+	drv8835_log_info("Exit test.");
 	exit(0);
 }

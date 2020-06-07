@@ -4,23 +4,13 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <stdarg.h>
+#include "drv8835_util.h"
 
-const int DEFAULT_PORT = 9939;
 const uint8_t HANDSHAKE_CLIENT[] = {0xCA, 0xFE};
 const uint8_t HANDSHAKE_SERVER[] = {0xBE, 0xEF};
 const int MAX_MISSING_HEARTBEAT = 5;
 const uint8_t MOTOR_PARAM_PACKET_MAGIC1[] = {0xCD, 0xCD};
 const uint8_t MOTOR_PARAM_PACKET_MAGIC2[] = {0xDC, 0xDC};
-
-const int LOG_DEBUG = 1;
-const int LOG_INFO = 3;
-const int LOG_ERROR = 5;
-
-static FILE* debug_out = NULL;
-static FILE* info_out = NULL;
-static FILE* error_out = NULL;
-static int log_level = 1;
 
 void check_root()
 {
@@ -30,87 +20,6 @@ void check_root()
         exit(EXIT_FAILURE);
     }
 
-}
-
-bool is_root()
-{
-	return geteuid() == 0;
-}
-
-void log_init(FILE* debug, FILE* info, FILE* error)
-{
-	debug_out = debug;
-	info_out = info;
-	error_out = error;
-}
-
-void log_setlevel(int level)
-{
-	log_level = level;
-}
-
-void log_debug(const char* format, ...)
-{
-	if (log_level >  LOG_DEBUG)
-		return;
-	va_list args;
-	va_start (args, format);
-	vfprintf (debug_out?debug_out:stdout, format, args);
-	va_end (args);
-	fputc('\n', debug_out?debug_out:stdout);
-}
-
-void log_debug_nocr(const char* format, ...)
-{
-	if (log_level > LOG_DEBUG)
-		return;
-	va_list args;
-	va_start (args, format);
-	vfprintf (debug_out?debug_out:stdout, format, args);
-	va_end (args);
-}
-
-void log_info(const char* format, ...)
-{
-	if (log_level >  LOG_INFO)
-		return;
-	va_list args;
-	va_start (args, format);
-	vfprintf (info_out?info_out:stdout, format, args);
-	va_end (args);
-	fputc('\n', info_out?info_out:stdout);
-}
-
-void log_info_nocr(const char* format, ...)
-{
-	if (log_level > LOG_INFO)
-		return;
-	va_list args;
-	va_start (args, format);
-	vfprintf (info_out?info_out:stdout, format, args);
-	va_end (args);
-}
-
-void log_error(const char* format, ...)
-{
-	if (log_level > LOG_ERROR)
-		return;
-	va_list args;
-	va_start (args, format);
-	vfprintf (error_out?error_out:stderr, format, args);
-	va_end (args);
-	fputc('\n', error_out?error_out:stderr);
-}
-
-void log_error_nocr(const char* format, ...)
-{
-	if (log_level > LOG_ERROR)
-		return;
-
-	va_list args;
-	va_start (args, format);
-	vfprintf (error_out?error_out:stderr, format, args);
-	va_end (args);
 }
 
 void error_exit(const char *msg, int exit_code)
@@ -237,10 +146,10 @@ void debug_packet(FILE* stream, motor_param_packet_header* header)
 	size_t bytes = header->len_bytes;
 
 	
-	log_debug("Packet(%d): ", bytes);
+	drv8835_log_debug("Packet(%d): ", bytes);
 	for(size_t i = 0; i < bytes; ++i)
 	{
-		log_debug_nocr("%.2X ", ptr[i]);
+		drv8835_log_debug_nocr("%.2X ", ptr[i]);
 	}
-	log_debug("");
+	drv8835_log_debug("");
 }

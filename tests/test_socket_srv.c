@@ -8,6 +8,7 @@
 #include <stdbool.h>
 #include <time.h>
 #include "common.h"
+#include "types.h"
 
 int main(int argc, char** argv)
 {

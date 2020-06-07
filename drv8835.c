@@ -2,6 +2,7 @@
 #include <stdint.h>
 #include <stdbool.h>
 #include "types.h"
+#include "drv8835_util.h"
 #include "common.h"
 #ifdef RASPI
 #include <wiringPi.h>
@@ -17,14 +18,14 @@ result_t drv8835_server_init()
 	{
 		if (motor_server_init() != 0)
 		{
-			log_error("Motor server initialisation failed.");
+			drv8835_log_error("Motor server initialisation failed.");
 			return -1;
 		}
 	}
 
 	if (motor_server_start() != 0)
 	{
-		log_error("Cannot start motor server thread.");
+		drv8835_log_error("Cannot start motor server thread.");
 		return -1;
 	}
 

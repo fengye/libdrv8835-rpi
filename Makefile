@@ -3,10 +3,15 @@ UNAME=$(shell uname -s)
 ARCH=$(shell uname -m)
 TESTS=tests/
 IS_RASPI=0
+IS_MACOS=0
 ifeq ($(UNAME), Linux)
   ifeq ($(ARCH), armv7l)
     IS_RASPI=1
   endif
+endif
+
+ifeq ($(UNAME), Darwin)
+  IS_MACOS=1
 endif
 
 PUBLIC_LIB_HEADER=drv8835.h types.h drv8835_util.h
@@ -26,7 +31,7 @@ SOURCES=$(DAEMON_SOURCES) $(LIB_SOURCES) $(TEST_THREAD_SRC) $(TEST_SOCKET_SRV_SR
 INCPATHS=./ /usr/local/include/
 LIBPATHS=./
 
-LDFLAGS=-lpthread -pthread
+LDFLAGS=-lpthread 
 ifeq ($(IS_RASPI), 1)
   LDFLAGS+=-lwiringPi
 endif
@@ -36,7 +41,11 @@ CFLAGS=-c -Wall
 ifeq ($(IS_RASPI), 1)
   CFLAGS+=-DRASPI
 endif
-DRV8835_STATIC_LINKAGE=-l:libdrv8835.a
+ifeq ($(IS_MACOS), 1)
+  DRV8835_STATIC_LINKAGE=libdrv8835.a
+else
+  DRV8835_STATIC_LINKAGE=-l:libdrv8835.a
+endif
 CC=gcc
 AR=ar
 ARFLAGS=rcs

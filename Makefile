@@ -36,7 +36,7 @@ CFLAGS=-c -Wall
 ifeq ($(IS_RASPI), 1)
   CFLAGS+=-DRASPI
 endif
-DRV8835_STATIC_LINKAGE=-Bstatic -ldrv8835
+DRV8835_STATIC_LINKAGE=-l:libdrv8835.a
 CC=gcc
 AR=ar
 ARFLAGS=rcs

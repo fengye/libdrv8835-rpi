@@ -31,7 +31,7 @@ SOURCES=$(DAEMON_SOURCES) $(LIB_SOURCES) $(TEST_THREAD_SRC) $(TEST_SOCKET_SRV_SR
 INCPATHS=./ /usr/local/include/
 LIBPATHS=./
 
-LDFLAGS=-lpthread 
+LDFLAGS=-lpthread -pthread 
 ifeq ($(IS_RASPI), 1)
   LDFLAGS+=-lwiringPi
 endif
